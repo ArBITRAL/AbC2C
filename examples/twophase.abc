@@ -1,0 +1,32 @@
+component Manager
+	  attributes: n, c, id
+	  behaviour:
+	    let {
+	    	  A := (2)@(true).nil
+		  B := <c < n>(y = 1)(y).[c := c + 1]B
+		    + <c < n>(y = 0)(y).(0)@(true).nil
+		    + <c = n>(1)@(true).nil
+	    	}
+	    init A | B
+end
+
+component Participant
+	  attributes: d, id
+	  behaviour:
+	    let {
+	       A := (id = 1 and x = 2)(x).(
+	       	       (d)@(id = 1).A
+		         +
+	                (id = 1 and x /= 2)(x).[d := x]nil
+		      )
+		  + (id = 1 and x /= 2)(x).[d := x]nil
+	    	}
+	    init A
+end
+
+
+
+C1 : Manager (n -> 3, c -> 0, id -> 1)
+C2 : Participant (d -> 1, id -> 0)
+C3 : Participant (d -> 0, id -> 0)
+C4 : Participant (d -> 0, id -> 0)

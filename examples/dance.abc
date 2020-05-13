@@ -1,0 +1,46 @@
+component Lead
+	  attributes: r, o, u
+	  behaviour:
+		let {
+		    A := (u)@(true).nil
+		        + (r = this.r)(x).(y /= this.u)(y).A
+	            B := (x = this.u)(x).[o := 1]nil
+		}
+		init A | B
+end
+
+component Dev
+	  attributes: r, o, u
+	  behaviour:
+		let {
+		    P := (r /= this.r)(x).
+		    (
+		     (x)@(true).[o := 1]nil
+		          +
+		     (y = x and r = this.r)(y).P
+		     +
+     		     (x)@(true).[o := 1]nil
+		          +
+		     (y = x and r = this.r)(y).P
+		     +
+     		     (x)@(true).[o := 1]nil
+	             +
+		     (y = x and r = this.r)(y).P
+		     +
+     		     (x)@(true).[o := 1]nil
+	             +
+		     (y = x and r = this.r)(y).P
+		     +
+     		     (x)@(true).[o := 1]nil
+	             +
+		     (y = x and r = this.r)(y).P
+		    )
+		}
+		init P
+end
+
+C1: Leader (u -> 1, o -> 0, r -> 1)
+C2: Leader (u -> 2, o -> 0, r -> 1)
+C3: Follower (u -> 3, o -> 0, r -> 1)
+C4: Follower (u -> 4, o -> 0, r -> 0)
+C5: Follower (u -> 5, o -> 0, r -> 0)
