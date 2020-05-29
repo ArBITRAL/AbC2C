@@ -1,0 +1,40 @@
+%% y 0 n 1 Y 2 N 3
+component In
+	  attributes: u, o
+	  behaviour:
+		let {
+		    A := <o = 0>(u,o)@(o = 1).(this.u = x)(x).A
+		    B := <o = 2>(u,o)@(o = 3 or o = 1).(this.u = x)(x).[o := 0]B
+		    C := <o = 3>(u,o)@(o = 0).(this.u = x)(x).C
+
+
+		}
+		init A | B | C
+end
+
+component Re
+	  attributes: u, o
+	  behaviour:
+		let {
+		    D := <o = 1>(this.u /= x and (y = 0 or y = 2))(x,y).(
+		      	   (x)@(true).[o := 0]D
+			   +
+			   (v = x)(v).D)
+		    E := <o = 3>(this.u /= x and y = 2)(x,y).(
+		          (x)@(true).[o := 1]E
+			   +
+			   (v = x)(v).E
+			   )
+	           F :=  <o = 0>(this.u /= x and y = 3)(x,y).(
+		          (x)@(true).[o := 1]F
+			   +
+			   (v = x)(v).F
+			   )
+	   } init D | E | F
+end
+A1 : In (u -> 1, o -> 1)
+A2 : In (u -> 2, o -> 1)
+A3 : In (u -> 3, o -> 1)
+A4 : Re (u -> 4, o -> 0)
+A5 : Re (u -> 5, o -> 0)
+%%A6 : Agent (u -> 6, o -> 0)

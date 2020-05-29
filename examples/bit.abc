@@ -1,13 +1,13 @@
 component Bit
-	  attributes: i, o
+	  attributes: ib, ob
 	  behaviour:
 		let {
-		    A := <i = 0>(x = 1)(x).[o := 1]nil
-		    B := <i = 1>(i)@(true).[o := 1]nil
+		    A := <ib = 0>(x = 1)(x).[ob := 1]nil
+		    B := <ib = 1>(ib)@(ib = 0).[ob := 1]nil
 		}
 		init A + B
 end
 
-B1: Bit (i -> 1, o -> 0)
-B2: Bit (i -> 0, o -> 0)
-B3: Bit (i -> 0, o -> 0)
+B1: Bit (ib -> 1, ob -> 0)
+B2: Bit (ib -> 0, ob -> 0)
+B3: Bit (ib -> 0, ob -> 0)
