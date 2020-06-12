@@ -18,7 +18,8 @@ including AF p , AF (AG p), (EF p) within a number of emulation steps.
 * src: translator code (in Erlang)
 * examples: AbC specifications (or models) + generated, instrumented C files
 
-## Backend:
+## Backend supports (with changing the names of verification oriented primitives accordingly)
 
-ESBMC: for safety and termination analysis
-CBMC: for safety and bounded liveness analysis
+CBMC
+
+ESBMC
