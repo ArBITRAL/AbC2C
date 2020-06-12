@@ -10,7 +10,7 @@ component Phi
 			 +
 		      	 (this.u = x and y = this.c)(x,y).[c := 0]A)
 			 +
-			 (o = this.o)(x,y).(o /= this.o)(x,y).A
+			 <o = 1>(o = this.o)(x,y).(o /= this.o)(x,y).A
 
 		    B := <o = 0>(o /= this.o)(x,y).(
 		              <y /= c>(x,c)@(true).[o := y]B
@@ -23,8 +23,8 @@ component Phi
 end
 
 A1 : Phi (u -> 1, c -> 1, o -> 1)
-A2 : Phi (u -> 2, c -> 1, o -> 1)
+A2 : Phi (u -> 2, c -> 1, o -> 0)
 A3 : Phi (u -> 3, c -> 1, o -> 0)
-A4 : Phi (u -> 4, c -> 1, o -> 0)
-%%A5 : Phi (u -> 5, c -> 1, o -> 0)
-%%A6 : Phi (u -> 6, c -> 1, o -> 0)
+%A4 : Phi (u -> 4, c -> 1, o -> 0)
+%A5 : Phi (u -> 5, c -> 1, o -> 0)
+%A6 : Phi (u -> 6, c -> 1, o -> 0)
