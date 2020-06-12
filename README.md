@@ -1,16 +1,17 @@
 # A translator from AbC to C
 
-Actions composed by process operators can be sequentialized in
-sequential language by setting proper enabled and disabled conditions
-over corresponding C functions.
+Actions composed by process operators can be emulated, under
+non-derterministic scheduling, by a sequential functions (in
+sequential language like C) whose execution is guarded by proper
+enable conditions.
 
-System emulation is achived by nondetermistic scheduling of the set of
-enabled functions.
+System emulation is achived by an emulation loop, at each step
+nondeterministically choosing one output action from the the set of enabling actions.
 
 Properties of interests are currently expressed by using assert
-statements. See the examples folder to encode the properties p. It is
-possible to express safety, i.e., G p, or liveness, i.e., F p , F G p
-within a number of execution steps.
+statements. See the examples folder to encode the formula p. It is
+possible to express bounded versions of safety, i.e., AG p or liveness
+including AF p , AF (AG p), (EF p) within a number of emulation steps.
 
 ## Folder:
 
