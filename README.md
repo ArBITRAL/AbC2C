@@ -15,9 +15,7 @@ within a number of execution steps.
 ## Folder:
 
 * src: translator code (in Erlang)
-* examples: AbC specifications (or models) + generated C files
-* models+p: C files with property instruments used for property
-  checking.
+* examples: AbC specifications (or models) + generated, instrumented C files
 
 ## Backend:
 
