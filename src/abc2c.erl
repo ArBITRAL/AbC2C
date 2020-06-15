@@ -489,11 +489,11 @@ init([], PnList, InitComs) ->
     ICode ="\n\nvoid init() {\n  " ++
 	string:join(lists:reverse(InitComs), ";\n  ") ++  ";\n  int _i, _j;\n  " ++ string:join(IBody, "\n  ") ++ "\n}",
 
-    FBody = make_clean(maps:keys(PnList)),
-    FCode = "\n\nvoid clean() {\n  int _i, _j;\n  " ++ string:join(FBody, "\n  ") ++ "\n}",
+    %% FBody = make_clean(maps:keys(PnList)),
+    %% FCode = "\n\nvoid clean() {\n  int _i, _j;\n  " ++ string:join(FBody, "\n  ") ++ "\n}",
 
 %%    ObserStates = string:join(lists:reverse(Observables), "\n"),
-    out_initcode([ICode, TokenDef, FCode]),
+    out_initcode([ICode, TokenDef]),
     PnList;
 
 %% chance to init components individually here
@@ -522,7 +522,7 @@ output_model(Outname) ->
     Init = lists:reverse(ets:lookup_element(cmodel,init,2)),
 
     Property = "\n\n//---Properties--- \nvoid check_safety() {\n  _Bool safety = false;\n  __CPROVER_assert(!safety,\"\");\n}\n" ++ "\nvoid check_liveness() {\n  _Bool liveness = true;\n  __CPROVER_assert(liveness,\"\");\n}\n",
-    MainLoop = "\n\nint main() {\n  init();\n  unsigned short cid;\n  while (available()) {\n    cid = schedule();\n    __CPROVER_assume(Evolve(cid));\n    check_safety();\n  }\n  check_liveness();\n  clean();\n  return 0;\n}\n\n",
+    MainLoop = "\n\nint main() {\n  init();\n  unsigned short cid;\n  while (available()) {\n    cid = schedule();\n    __CPROVER_assume(Evolve(cid));\n    check_safety();\n  }\n  check_liveness();\n  return 0;\n}\n\n",
 %    io:format("====code accumulated so far==== \n ~s",[Define]),
 %%   io:format("====code accumulated so far==== \n ~s",[Header]),
     [CFile|_] = string:split(Outname,"."),
@@ -532,15 +532,19 @@ output_model(Outname) ->
 header(PnList, TotalComps, AttEnv) ->
     Atts = sets:to_list(sets:from_list(lists:append(maps:values(AttEnv)))), %% attrs set
     Type = "\n\ntypedef int (*pts)(int, int);\ntypedef int (*ptr)(int, int, int*);\n\nstruct {\n  int ns;\n  int nr;\n  pts* SendAct;\n  ptr* RecvAct;\n} lookup[N];\n\nint Evolve(int);\nvoid Sync(int, int*);\nvoid receive(int, int, int*);",
-    Header = "\n#define true 1\n#define false 0\n" ++ Type ++ "\n\nint* pc[N];\n\nint** bound[N];\n\t\n// attributes\nint " ++ lists:join("[N];\nint ",Atts) ++ "[N];\n\nint tgt[N] = {};\nunsigned short nondet_ushort();\n_Bool nondet_bool();\n\n",
+    Header = "\n#define true 1\n#define false 0\n" ++ Type ++ "\n\nint pc[N][NP_MAX] = {};\nint bound[N][ND_MAX][NV_MAX];\nint tgt[N] = {};\n\t\n// attributes\nint " ++ lists:join("[N];\nint ",Atts) ++ "[N];\nunsigned short nondet_ushort();\n_Bool nondet_bool();\n\n",
     Define = "#define N " ++ string:join(TotalComps, " + ") ++ " // # components \n\n" ++ build_define(maps:to_list(PnList)),
     ets:insert(cmodel,{header, [Define, Header]}).
 
 build_define(A) ->
-    build_define(A,[]).
+    build_define(A,0,0,0,[]).
 
-build_define([], Define) -> Define;
-build_define([{CName,N} | Rest], Define) ->
+build_define([], NP_Max, ND_Max, NV_Max, Define) ->
+    Define ++
+    "\n#define NP_MAX" ++ " " ++  v(NP_Max) ++ " // # max action indexes \n" ++
+    "#define ND_MAX" ++ " " ++  v(ND_Max) ++ " // # max process definitions \n" ++
+    "#define NV_MAX" ++ " " ++  v(NV_Max) ++ " // # bound variables (max) \n";
+build_define([{CName,N} | Rest], NP_Max, ND_Max, NV_Max, Define) ->
     NumVars = maps:map(fun(K,V) -> length(lists:usort(V)) end, ets:lookup_element(CName, num_vars, 2)),
     NV = lists:max(maps:values(NumVars)),
     NP = ets:lookup_element(CName, num_indexes, 2) + 1, % index starts from 0
@@ -549,12 +553,12 @@ build_define([{CName,N} | Rest], Define) ->
     NR = length(ets:lookup_element(CName, rtable, 2)),
     Name = v(CName),
     A = "\n#define N_" ++ Name ++ " " ++  v(N) ++ " // # components (of this type) \n",
-    B = "#define ND_" ++ Name ++ " " ++  v(ND) ++ " // # process definitions \n",
-    C = "#define NP_" ++ Name ++ " " ++  v(NP) ++ " // # action indexes \n",
-    D = "#define NS_" ++ Name ++ " " ++ v(NS) ++ " // # sending actions \n",
-    E = "#define NR_" ++ Name ++ " " ++ v(NR) ++ " // # receiving actions \n",
-    F = "#define NV_" ++ Name ++ " " ++ v(NV) ++ " // # bound variables (max) \n\n",
-    build_define(Rest, [A ++ B ++ C ++ D ++ E ++ F | Define]).
+    B = "#define NP_" ++ Name ++ " " ++  v(NP) ++ " // # action indexes \n",
+    C = "#define NS_" ++ Name ++ " " ++ v(NS) ++ " // # sending actions \n",
+    D = "#define NR_" ++ Name ++ " " ++ v(NR) ++ " // # receiving actions \n",
+%   E = "#define ND_" ++ Name ++ " " ++  v(ND) ++ " // # process definitions \n",
+%   F = "#define NV_" ++ Name ++ " " ++ v(NV) ++ " // # bound variables (max) \n\n",
+    build_define(Rest, max(NP,NP_Max), max(ND,ND_Max), max(NV,NV_Max), [A ++ B ++ C ++ D  | Define]).
 
 %% build_bound_list(L) ->
 %%     build_bound_list(L,[]).
@@ -641,20 +645,20 @@ fresh(recv, CName) ->
     C = ets:update_counter(counter2,c,1),
     "__" ++ v(CName) ++ "_b" ++ v(C).
 
-make_clean(A) ->
-    make_clean(A,[]).
+%% make_clean(A) ->
+%%     make_clean(A,[]).
 
-make_clean([], Acc) ->
-    Acc;
-make_clean([H|T], Acc) ->
-    {B, E} = ets:lookup_element(H, id_range, 2),
-    make_clean(T, [make_loop2(v(H),B,E) | Acc]).
+%% make_clean([], Acc) ->
+%%     Acc;
+%% make_clean([H|T], Acc) ->
+%%     {B, E} = ets:lookup_element(H, id_range, 2),
+%%     make_clean(T, [make_loop2(v(H),B,E) | Acc]).
 
-make_loop2(C,B,E) ->
-    "for (_i = " ++ B ++ ";_i < " ++ E ++ ";_i++) {\n    " ++
-	"for (_j = 0; _j < " ++ "ND_" ++ C ++"; _j++) free(bound[_i][_j]);\n    " ++
-	"free(pc[_i]);\n    " ++
-	"free(bound[_i]);\n  }    ".
+%% make_loop2(C,B,E) ->
+%%     "for (_i = " ++ B ++ ";_i < " ++ E ++ ";_i++) {\n    " ++
+%% 	"for (_j = 0; _j < " ++ "ND_" ++ C ++"; _j++) free(bound[_i][_j]);\n    " ++
+%% 	"free(pc[_i]);\n    " ++
+%% 	"free(bound[_i]);\n  }    ".
 
 make_init(A) ->
     make_init(A,[]).
@@ -666,17 +670,24 @@ make_init([H|T], Acc) ->
     make_init(T, [make_loop(v(H),B,E) | Acc]).
 
 
+%% make_loop(C,B,E) ->
+%%     "for (_i = " ++ B ++ ";_i < " ++ E ++ ";_i++) {\n    " ++
+%% 	"lookup[_i].ns = NS_" ++ C ++ ";\n    " ++
+%% 	"lookup[_i].nr = NR_" ++ C ++ ";\n    " ++
+%% 	"lookup[_i].SendAct = st_" ++ C ++ ";\n    " ++
+%% 	"lookup[_i].RecvAct = rt_" ++ C ++ ";\n    " ++
+%% 	"pc[_i] = (int*) malloc(sizeof(int) * NP_" ++ C ++ ");\n    " ++
+%% 	"bound[_i] = (int**) malloc(sizeof(int*) * ND_" ++ C ++ ");\n    " ++
+%% 	"for (_j = 0; _j < " ++ "ND_" ++ C ++"; _j++) bound[_i][_j] = (int*) malloc(sizeof(int) * NV_" ++ C ++ ");\n    " ++
+%% 	"for (_j = 0; _j < " ++ "NP_" ++ C ++"; _j++) pc[_i][_j] = 0;\n   }".
+
+
 make_loop(C,B,E) ->
     "for (_i = " ++ B ++ ";_i < " ++ E ++ ";_i++) {\n    " ++
 	"lookup[_i].ns = NS_" ++ C ++ ";\n    " ++
 	"lookup[_i].nr = NR_" ++ C ++ ";\n    " ++
 	"lookup[_i].SendAct = st_" ++ C ++ ";\n    " ++
-	"lookup[_i].RecvAct = rt_" ++ C ++ ";\n    " ++
-	"pc[_i] = (int*) malloc(sizeof(int) * NP_" ++ C ++ ");\n    " ++
-	"bound[_i] = (int**) malloc(sizeof(int*) * ND_" ++ C ++ ");\n    " ++
-	"for (_j = 0; _j < " ++ "ND_" ++ C ++"; _j++) bound[_i][_j] = (int*) malloc(sizeof(int) * NV_" ++ C ++ ");\n    " ++
-	"for (_j = 0; _j < " ++ "NP_" ++ C ++"; _j++) pc[_i][_j] = 0;\n   }".
-
+	"lookup[_i].RecvAct = rt_" ++ C ++ ";}".
 
 other_attrs(CName) ->
     %% other attributes should be all attributes
