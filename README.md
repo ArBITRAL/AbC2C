@@ -1,11 +1,11 @@
-# A translator that can translate AbC specifications to sequential C programs
+# Translating AbC specifications into sequential C programs
 
 Actions composed by process operators can be emulated, under
-non-derterministic scheduling, by a sequential functions (in
+non-deterministic scheduling, by sequential functions (in
 sequential language like C) whose execution is guarded by proper
 enable conditions.
 
-Emulation of a system is achived via an emulation loop; at each step,
+Emulation of the system is realized via an emulation loop; at each step,
 nondeterministically choosing one output action from the the set of
 enabling output actions.
 
